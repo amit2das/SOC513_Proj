@@ -1,5 +1,5 @@
 project:
-  title: "Research Template"
+  title: "Research Project for SOC 513"
   output-dir: _products
   execute-dir: project
   pre-render: 
@@ -14,17 +14,17 @@ project:
     - "!bibliography/"
 
 author:
-  - name: Aaron Gullickson
-    orcid: 0000-0001-7237-8131
-    email: aarong@uoregon.edu
-    url: https://aarongullickson.netlify.app/
+  - name: Amit Das
+    orcid: 0000-0003-1123-8455
+    email: amitdas@uoregon.edu
+    url: https://business.uoregon.edu/directory/management/all/amitdas
     attributes:
       corresponding: true
     affiliations:
       - id: uo
         name: University of Oregon
-        department: Sociology
-        address: 727 PLC
+        department: Management
+        address: Anstett 291A
         city: Eugene
         region: OR
         country: USA
