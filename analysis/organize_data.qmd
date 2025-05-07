@@ -10,4 +10,14 @@ source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
 ```
 
-This quarto doc is used to organize the data.
+```{r}
+# Load the raw dataset
+wdi_data <- read_csv(here("data","data_raw","wdi_data_original.csv"))
+
+# Display the first few rows
+head(wdi_data)
+
+# Display a summary of the data
+summary(wdi_data)
+
+```

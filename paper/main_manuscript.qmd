@@ -38,6 +38,24 @@ This quarto doc is for writing the manuscript. This is a test citation [@alba199
 
 # Data and Methods
 
+### Data Source
+
+This study uses the World Development Indicators (WDI) dataset, a comprehensive database compiled and maintained by the World Bank. The WDI data was directly downloaded using the WDI R package, which provides streamlined access to the WDI database.
+
+### Data Collection
+
+* Source: World Bank, World Development Indicators (WDI) Database.
+* URL: [World Bank WDI Data Portal](https://databank.worldbank.org/source/world-development-indicators)
+* Method: Retrieved using the WDI R package[CRAN WDI Package](https://cran.r-project.org/package=WDI)
+* Coverage: The dataset spans multiple years and includes data for most countries globally. Here, I used 2003-2021.
+* Indicators: The dataset provides a wide range of indicators, including GDP, and other critical development metrics.
+* Frequency: Annual data, with country-level observations.
+
+### Generalizability
+
+The WDI data is widely used in academic and policy research due to its comprehensive coverage and standardized indicators. However, the accuracy of the data depends on the data collection and reporting methods of individual countries. Researchers should be aware of potential missing values and variations in data quality across countries and years.
+
+
 # Results
 
 # Conclusions
