@@ -21,3 +21,31 @@ head(wdi_data)
 summary(wdi_data)
 
 ```
+# Raw data to ---------> analytical data
+# check yourself. before wreck yourself
+
+# visualaize 
+# Tidy data
+# Key dvs- # narrow Down to One dependent variable
+# Key IVS
+#few important Covariables
+# 
+
+# data wrangling
+
+#missing values
+# check the missing values slides to impute process
+
+# merging data
+
+# reshaping data (not in may case)
+
+
+
+```{r}
+cleaned_dataset <- wdi_data
+
+save(cleaned_dataset, file = here("data", "data_constructed", "analytical_data.RData"))
+
+```
+

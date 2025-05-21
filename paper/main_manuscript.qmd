@@ -1,12 +1,12 @@
 ---
-title: "Paper Manuscript"
+title: "Foundations of Business-Friendly Environments: Assessing the Role of Infrastructure and Economic Stability Indicators"
 shorttitle: "Paper"
 abstract: An Abstract
-keywords: [keyword1, keyword2]
+keywords: [Ease of doing Business, World bank]
 thanks: Thanks to everyone for checking this out.
 reference-section-title: References
 bibliography: ../bibliography/project.bib
-csl: ../bibliography/chicago-parenthetical.csl
+csl: ../bibliography/strategic-management-journal.csl
 format:
   aog-article-pdf:
     keep-tex: false
@@ -32,9 +32,12 @@ source(here("utils","functions.R"))
 
 # Introduction
 
-This quarto doc is for writing the manuscript. This is a test citation [@alba1990].
+In today's globalized economy, understanding the factors that create friendly business environments is critical for economic development policy. Countries worldwide invest substantial resources in infrastructure development and economic stabilization measures, operating under the assumption that these investments translate into improved business conditions. Despite this widespread belief, empirical evidence establishing the precise relationships between infrastructure quality, economic stability, and business environment remains fragmented. This study addresses this gap by examining how specific infrastructure and economic stability indicators influence the ease of doing business across countries.
 
-# Background
+The question of what makes a country hospitable to business activity has significant implications for economic development theory and practice. The World Bank's Ease of Doing Business index has become a benchmark for evaluating business environments, yet the underlying determinants of favorable scores remain imperfectly understood. While extensive literature exists on the relationship between economic development and business conditions, research specifically examining the relative importance of infrastructure reliability versus economic stability indicators presents a promising avenue for investigation. This study asks: *How do infrastructure and economic stability influence how easy it is to do business in a country?*
+
+This study contributes to existing knowledge by analyzing both infrastructure indicators (primarily access to electricity) and economic stability measures (current account balance and interest rate spreads) in relation to ease of doing business scores. Using a comprehensive dataset from the World Bank's World Development Indicators spanning 2003-2021, this research employs multivariate statistical analysis to determine which factors most significantly predict favorable business environments. By examining these relationships across time and among diverse economies, this study provides a more nuanced understanding of what truly matters for creating business-friendly conditions. The findings will help policymakers prioritize investments and regulatory reforms that most effectively improve business operating conditions, potentially accelerating economic development in regions seeking to attract and retain business activity.
+
 
 # Data and Methods
 
@@ -55,6 +58,7 @@ This study uses the World Development Indicators (WDI) dataset, a comprehensive 
 
 The WDI data is widely used in academic and policy research due to its comprehensive coverage and standardized indicators. However, the accuracy of the data depends on the data collection and reporting methods of individual countries. Researchers should be aware of potential missing values and variations in data quality across countries and years.
 
+test citation [@zuzulStartupInertiaFlexibility2020]
 
 # Results
 
