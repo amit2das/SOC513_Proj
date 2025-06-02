@@ -111,7 +111,7 @@ regional_trends_plot <- analytical_dataset %>%
   theme(legend.position = "bottom",
         legend.box = "horizontal")
 
-#  plot
+#  plot 
 print(regional_trends_plot)
 ```
 
