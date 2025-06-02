@@ -11,30 +11,177 @@ source(here("utils","functions.R"))
 ```
 
 ```{r}
-# Load the raw dataset
-wdi_data <- read_csv(here("data","data_raw","wdi_data_original.csv"))
+# loading the raw dataset
+df_raw_wdi <- read_csv(here("data", "data_raw", "wdi_data_original.csv"))
 
-# Display the first few rows
-head(wdi_data)
+# displaying the first few rows to inspect the data
+head(df_raw_wdi)
 
-# Display a summary of the data
-summary(wdi_data)
+# displaying a summary to get an overview of the variables
+summary(df_raw_wdi)
 
 ```
 # Raw data to ---------> analytical data
 # check yourself. before wreck yourself
+```{r}
+# --- 2. Data Cleaning and Transformation ---
+# Raw data to ---------> analytical data
+#  always check myself before I wreck myself
+
+# --- 2. Data Cleaning and Transformation ---
+
+# 2.1. Here, renaming columns to use meaningful and consistent names.
+# mapping the CSV column names to the variable names I want.
+# Note: Both 'cpi' and 'inflation' are in my CSV. using 'inflation' as the annual % change,
+# since it's more appropriate as a macroeconomic stability indicator. The CPI index is just for reference.
+cleaned_data <- df_raw_wdi |>
+  janitor::clean_names() |>
+  dplyr::rename(
+    eodb_score = edb, # ease of doing Buisness indicator
+    access_electricity = electricity,
+    broadband_internet_users_pct = broadband, # renaming 'broadband' for clarity
+    mobile_subscriptions = mobile,
+    gdp_per_capita = gdp_pc,
+    current_account_balance = cab,
+    inflation_annual_pct = inflation, # using 'inflation' as annual % change
+    cpi_index = cpi, # keeping CPI index just for reference
+    interest_rate_spread = interest_spread,
+    government_effectiveness = gov_effectiveness,
+    rule_of_law_estimate = rule_law,
+    control_of_corruption_estimate = control_corruption
+    
+    # and sticking to a minimal set of non-overlapping variables
+  )
+
+# 2.2. dropping rows where my dependent variable (eodb_score) is NA,
+# and filtering out aggregate income rows to keep only actual countries.
+cleaned_data <- cleaned_data |>
+  drop_na(eodb_score) |>
+  filter(income != "Aggregates")
+
+# 2.3. Here, selecting only the final set of variables for my analysis.
+# excluding metadata like 'status' and 'lastupdated',
+# and any geographical metadata that I don't need for the core analysis, but keeping country identifiers.
+analytical_dataset <- cleaned_data|>
+  select(-status,-iso2c, -lastupdated, -lending, -longitude, -latitude,-interest_rate_spread)
+
+```
 
 # visualaize 
+
+```{r}
+ggplot(analytical_dataset, aes(x = income, y = eodb_score)) +
+  geom_jitter(width = 0.2, height = 0, alpha = 0.6) +
+  labs(title = "Ease of Doing Business (EDB) Score by Income Group",
+       x = "Income Group", y = "EDB Score") +
+  theme_minimal()
+
+```
+
+```{r}
+ggplot(analytical_dataset, aes(x = income, y = eodb_score)) +
+  geom_jitter(width = 0.2, alpha = 0.4, color = "darkblue") +
+  geom_boxplot(alpha = 0.3, outlier.shape = NA) +
+  labs(title = "EDB Score by Income Group",
+       x = "Income Category", y = "EDB Score") +
+  theme_minimal()
+
+```
+
+```{r}
+# Regional Trends Visualization 
+regional_trends_plot <- analytical_dataset %>%
+  ggplot(aes(x = year, y = eodb_score, color = region, group = region,
+             label = country)) +  # label retained for optional use
+  geom_point(alpha = 0.6, size = 1) +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
+  labs(title = "Ease of Doing Business Trends by Region (2015–2019)",
+       subtitle = "Higher scores indicate better business environments",
+       x = "Year",
+       y = "Ease of Doing Business Score",
+       color = "Region") +
+  scale_color_manual(values = c("East Asia & Pacific" = "red",
+                                "Europe & Central Asia" = "brown",
+                                "Latin America & Caribbean" = "green",
+                                "Middle East & North Africa" = "darkblue",
+                                "North America" = "skyblue",
+                                "South Asia" = "purple",
+                                "Sub-Saharan Africa" = "pink")) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal")
+
+#  plot
+print(regional_trends_plot)
+```
+
+```{r}
+# Income Group Trends Visualization
+income_trends_plot <- analytical_dataset %>%
+  ggplot(aes(x = year, y = eodb_score, color = income, group = income,
+             label = country)) +  # Optional for future interactivity
+  geom_point(alpha = 0.6, size = 1) +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
+  labs(title = "Ease of Doing Business Trends by Income Group (2015–2019)",
+       subtitle = "Higher scores indicate better business environments",
+       x = "Year",
+       y = "Ease of Doing Business Score",
+       color = "Income Group") +
+  scale_color_manual(values = c("Low income" = "red",
+                                "Lower middle income" = "orange",
+                                "Upper middle income" = "blue",
+                                "High income" = "darkgreen",
+                                "Not classified" = "gray")) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal")
+
+# plot
+print(income_trends_plot)
+
+```
+
+
+
+# descriptive table
+
+
+```{r}
+datasummary_skim(analytical_dataset)
+```
+
+
+
 # Tidy data
 # Key dvs- # narrow Down to One dependent variable
 # Key IVS
 #few important Covariables
 # 
+```{r}
+library(corrplot)
+
+# Create correlation matrix with piping, then plot it
+analytical_dataset |>
+  select(-year) |>
+  select(where(is.numeric)) |>
+  cor(use = "pairwise.complete.obs") |>
+ corrplot(method = "color", 
+         type = "upper", 
+         order = "hclust", 
+         tl.col = "black",
+         tl.srt = 45,
+         tl.cex = 0.7,
+         title = "Correlation Heatmap of Business Environment Factors",
+         addCoef.col = "black",   
+         number.digits = 1,       
+         number.cex = 0.5)    
+```
 
 # data wrangling
 
 #missing values
-# check the missing values slides to impute process
+
+# i am not imputing any data
 
 # merging data
 
@@ -43,9 +190,8 @@ summary(wdi_data)
 
 
 ```{r}
-cleaned_dataset <- wdi_data
 
-save(cleaned_dataset, file = here("data", "data_constructed", "analytical_data.RData"))
+save(analytical_dataset, file = here("data", "data_constructed", "analytical_data.RData"))
 
 ```
 
