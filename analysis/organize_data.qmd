@@ -84,59 +84,6 @@ ggplot(analytical_dataset, aes(x = income, y = eodb_score)) +
 
 ```
 
-```{r}
-# Regional Trends Visualization 
-regional_trends_plot <- analytical_dataset %>%
-  ggplot(aes(x = year, y = eodb_score, color = region, group = region,
-             label = country)) +  # label retained for optional use
-  geom_point(alpha = 0.6, size = 1) +
-  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
-  labs(title = "Ease of Doing Business Trends by Region (2015–2019)",
-       subtitle = "Higher scores indicate better business environments",
-       x = "Year",
-       y = "Ease of Doing Business Score",
-       color = "Region") +
-  scale_color_manual(values = c("East Asia & Pacific" = "red",
-                                "Europe & Central Asia" = "brown",
-                                "Latin America & Caribbean" = "green",
-                                "Middle East & North Africa" = "darkblue",
-                                "North America" = "skyblue",
-                                "South Asia" = "purple",
-                                "Sub-Saharan Africa" = "pink")) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal")
-
-#  plot 
-print(regional_trends_plot)
-```
-
-```{r}
-# Income Group Trends Visualization
-income_trends_plot <- analytical_dataset %>%
-  ggplot(aes(x = year, y = eodb_score, color = income, group = income,
-             label = country)) +  # Optional for future interactivity
-  geom_point(alpha = 0.6, size = 1) +
-  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
-  labs(title = "Ease of Doing Business Trends by Income Group (2015–2019)",
-       subtitle = "Higher scores indicate better business environments",
-       x = "Year",
-       y = "Ease of Doing Business Score",
-       color = "Income Group") +
-  scale_color_manual(values = c("Low income" = "red",
-                                "Lower middle income" = "orange",
-                                "Upper middle income" = "blue",
-                                "High income" = "darkgreen",
-                                "Not classified" = "gray")) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal")
-
-# plot
-print(income_trends_plot)
-
-```
-
 
 
 # descriptive table
