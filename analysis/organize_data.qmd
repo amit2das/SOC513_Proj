@@ -25,10 +25,6 @@ summary(df_raw_wdi)
 # check yourself. before wreck yourself
 ```{r}
 # --- 2. Data Cleaning and Transformation ---
-# Raw data to ---------> analytical data
-#  always check myself before I wreck myself
-
-# --- 2. Data Cleaning and Transformation ---
 
 # 2.1. Here, renaming columns to use meaningful and consistent names.
 # mapping the CSV column names to the variable names I want.
