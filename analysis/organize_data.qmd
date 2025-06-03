@@ -182,6 +182,7 @@ analytical_dataset |>
 #missing values
 
 # i am not imputing any data
+# dropping the missing ones- As i dont have that much of missing data variables.
 
 # merging data
 
