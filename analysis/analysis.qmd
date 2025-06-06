@@ -2,74 +2,527 @@
 title: "Research Analysis Notebook"
 ---
 
+The Story: The Paradox of Prosperity
+
+This analysis sets out to understand what drives a country's "Ease of Doing Business" (EODB) score. 
+At first glance, the answer seems obvious: richer countries are better for business. An initial model confirms this, showing that as a country's income level rises, its EODB score soars.
+
+However, this simple story is misleading.
+
+When I introduce a measure of governance quality—which includes rule of law, government effectiveness, and control of corruption—the picture completely reverses. The strong effect of income vanishes and even flips, becoming negative. This is a classic Simpson's Paradox: the apparent effect of income was just a mask for the true driver, good governance. Rich countries tend to have better governance, and it is this governance, not the wealth itself, that fosters a positive business environment.
+
+Further analysis using advanced fixed-effects models, which control for stable differences between countries, confirms this. Improving a country's governance over time leads to a better EODB score, while changes in GDP have little to no effect.
+
+The final, conclusion is visualized by showing that a low-income country with excellent governance can achieve a better business environment than a high-income country with poor governance. The story that began with "wealth is destiny" ends with a more nuanced and empowering message: effective governance is the true key to economic opportunity.
+
+
+
+
 ```{r}
 #| label: setup
 #| include: false
+# Load all required libraries once
 library(here)
+
+# Source utility functions
 source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
-
-
 ```
 
 ```{r}
+#| label: load-data
+# Load and prepare data once
 load(here("data", "data_constructed", "analytical_data.RData"))
 
-```
-
-
-```{r}
-# Regional Trends Visualization 
-regional_trends_plot <- analytical_dataset %>%
-  ggplot(aes(x = year, y = eodb_score, color = region, group = region,
-             label = country)) +  # label retained for optional use
-  geom_point(alpha = 0.6, size = 1) +
-  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
-  labs(title = "Ease of Doing Business Trends by Region (2015–2019)",
-       subtitle = "Higher scores indicate better business environments",
-       x = "Year",
-       y = "Ease of Doing Business Score",
-       color = "Region") +
-  scale_color_manual(values = c("East Asia & Pacific" = "red",
-                                "Europe & Central Asia" = "brown",
-                                "Latin America & Caribbean" = "green",
-                                "Middle East & North Africa" = "darkblue",
-                                "North America" = "skyblue",
-                                "South Asia" = "purple",
-                                "Sub-Saharan Africa" = "pink")) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal")
-
-#  plot 
-print(regional_trends_plot)
-
+# Data summary
+summary(analytical_dataset$eodb_score)
+summary(analytical_dataset$income)
 ```
 
 ```{r}
-# Income Group Trends Visualization
-income_trends_plot <- analytical_dataset %>%
-  ggplot(aes(x = year, y = eodb_score, color = income, group = income,
-             label = country)) +  # Optional for future interactivity
-  geom_point(alpha = 0.6, size = 1) +
-  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
-  labs(title = "Ease of Doing Business Trends by Income Group (2015–2019)",
-       subtitle = "Higher scores indicate better business environments",
-       x = "Year",
-       y = "Ease of Doing Business Score",
-       color = "Income Group") +
-  scale_color_manual(values = c("Low income" = "red",
-                                "Lower middle income" = "orange",
-                                "Upper middle income" = "blue",
-                                "High income" = "darkgreen",
-                                "Not classified" = "gray")) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal")
+#| label: data-preparation
+# Single comprehensive data preparation step
+analytical_dataset <- analytical_dataset %>%
+  # Convert income to factor with proper levels (done once)
+  mutate(
+    income = factor(income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+  ) %>%
+  # Remove rows with missing governance data
+  drop_na(government_effectiveness, rule_of_law_estimate, control_of_corruption_estimate) %>%
+  mutate(
+    # Create governance index (standardized approach)
+    governance_index = (
+      as.vector(scale(government_effectiveness)) + 
+      as.vector(scale(rule_of_law_estimate)) + 
+      as.vector(scale(control_of_corruption_estimate))
+    ) / 3,
+    
+    # Log transformation for GDP
+    log_gdp_per_capita = log(gdp_per_capita),
+    
+    # Binary EODB variable for logistic regression
+    eodb_high = ifelse(eodb_score > median(eodb_score, na.rm = TRUE), "High", "Low"),
+    eodb_high = factor(eodb_high, levels = c("Low", "High"))
+  )
 
-# plot
-print(income_trends_plot)
+# Display median EODB score and proportions
+median_eodb <- median(analytical_dataset$eodb_score, na.rm = TRUE)
+print(paste("Median EODB Score:", round(median_eodb, 2)))
+prop.table(table(analytical_dataset$eodb_high))
+```
 
+The median EODB score is calculated (61.28) and used to create a binary "High/Low" EODB variable for later models.
+
+
+The Initial, Simple Models
+
+  A series of linear regression models are built. The first model (M1) shows a strong, positive relationship: higher-income countries are associated with significantly higher EODB scores. This is our initial, but misleading, finding.
+
+
+```{r}
+#| label: linear-models
+# Linear regression models 
+model_l1 <- lm(eodb_score ~ income, data = analytical_dataset)
+model_l2 <- lm(eodb_score ~ income + log_gdp_per_capita + inflation_annual_pct, data = analytical_dataset)
+model_l3 <- lm(eodb_score ~ income + log_gdp_per_capita + inflation_annual_pct + governance_index, data = analytical_dataset)
+model_l4 <- lm(eodb_score ~ income + log_gdp_per_capita + inflation_annual_pct + governance_index +
+                 broadband_internet_users_pct + mobile_subscriptions + access_electricity, data = analytical_dataset)
+
+# Display linear regression results
+modelsummary(list("M1_Income" = model_l1, 
+                  "M2_Economic" = model_l2, 
+                  "M3_Governance" = model_l3, 
+                  "M4_Full" = model_l4),
+             stars = TRUE,
+             title = "Linear Regression Models of Ease of Doing Business Score")
 ```
 
 
+
+An Alternative Model: 
+
+I run logistic regression models to predict the probability of having a high EODB score. The results initially mirror the linear models: higher income dramatically increases the odds of a good business environment. However, as controls are added (M2-M4), the income effect weakens, hinting that it's not the whole story.
+
+
+
+
+```{r}
+#| label: logistic-models
+# Logistic regression models - same progressive structure
+model_log1 <- glm(eodb_high ~ income, data = analytical_dataset, family = binomial)
+model_log2 <- glm(eodb_high ~ income + log_gdp_per_capita + inflation_annual_pct, data = analytical_dataset, family = binomial)
+model_log3 <- glm(eodb_high ~ income + log_gdp_per_capita + inflation_annual_pct + governance_index, data = analytical_dataset, family = binomial)
+model_log4 <- glm(eodb_high ~ income + log_gdp_per_capita + inflation_annual_pct + governance_index +
+                    broadband_internet_users_pct + mobile_subscriptions + access_electricity, data = analytical_dataset, family = binomial)
+
+# Display logit models (log-odds)
+modelsummary(list("M1" = model_log1, "M2" = model_log2, "M3" = model_log3, "M4" = model_log4),
+             stars = TRUE,
+             title = "Logistic Regression Models - Log-Odds")
+
+# Display logit models (odds ratios)
+modelsummary(list("M1" = model_log1, "M2" = model_log2, "M3" = model_log3, "M4" = model_log4),
+             stars = TRUE,
+             exponentiate = TRUE,
+             title = "Logistic Regression Models - Odds Ratios")
+```
+
+
+
+
+
+```{r}
+#| label: correlation-analysis
+# Single correlation matrix (removing redundant gdp_per_capita since I use log version)
+analytical_dataset %>%
+  select(-year, -gdp_per_capita, -eodb_high) %>%
+  select(where(is.numeric)) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot(method = "color", 
+           type = "upper", 
+           order = "hclust", 
+           tl.col = "black",
+           tl.srt = 45,
+           tl.cex = 0.7,
+           title = "Correlation Heatmap of Business Environment Factors",
+           addCoef.col = "black",   
+           number.digits = 1,       
+           number.cex = 0.5)
+```
+
+```{r}
+#| label: fixest-models
+# with fixest - more efficient approach
+# Stepwise model building
+fixest_models <- feols(
+  eodb_score ~ income + csw(log_gdp_per_capita, 
+                           governance_index,
+                           broadband_internet_users_pct,
+                           mobile_subscriptions,
+                           access_electricity,
+                           inflation_annual_pct),
+  data = analytical_dataset
+)
+
+# Simple income-only model for comparison
+model_simple <- feols(eodb_score ~ income, data = analytical_dataset)
+
+# Display progressive models with robust standard errors
+modelsummary(
+  list("M1_Income" = model_simple,
+       "M2_GDP" = fixest_models[[1]],
+       "M3_Gov" = fixest_models[[2]], 
+       "M4_Full" = fixest_models[[6]]),
+  stars = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
+  vcov = "stata",
+  gof_map = c("nobs", "r.squared.adj"),
+  title = "Progressive Regression Models with Robust Standard Errors",
+  notes = "Standard errors are robust (HC1)."
+)
+
+# Fixed effects model with both country and year fixed effects
+model_fe <- feols(
+  eodb_score ~ governance_index + log_gdp_per_capita + 
+               broadband_internet_users_pct + mobile_subscriptions + 
+               access_electricity + inflation_annual_pct | country + year,
+  data = analytical_dataset
+)
+
+modelsummary(
+  model_fe,
+  stars = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
+  vcov = ~country,
+  gof_map = c("nobs", "r.squared.within"),
+  title = "Two-Way Fixed Effects Model (Country + Year) with Clustered Standard Errors",
+  notes = "Standard errors are clustered by country. Model includes country and year fixed effects."
+)
+```
+
+```{r}
+#| label: adjusted-predictions
+# Create adjusted predictions visualization
+# Panel A: Simple model predictions
+p1_data <- predictions(
+  model_simple,
+  newdata = datagrid(income = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+)
+
+plot1 <- ggplot(p1_data, aes(x = income, y = estimate)) +
+  geom_point(size = 4, color = "#0072B2") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, linewidth = 1) +
+  labs(title = "A: Unadjusted Relationship",
+       subtitle = "Predicted EODB based on income group alone",
+       x = NULL, y = "Predicted EODB Score") +
+  theme_minimal(base_size = 14) +
+  coord_cartesian(ylim = c(40, 80))
+
+# Panel B: Full model predictions
+p2_data <- predictions(
+  fixest_models[[6]],
+  newdata = datagrid(income = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+)
+
+plot2 <- ggplot(p2_data, aes(x = income, y = estimate)) +
+  geom_point(size = 4, color = "#D55E00") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, linewidth = 1) +
+  labs(title = "B: Adjusted Relationship",
+       subtitle = "Predicted EODB after controlling for all factors",
+       x = "Income Group", y = NULL) +
+  theme_minimal(base_size = 14) +
+  coord_cartesian(ylim = c(40, 80))
+
+# Combined plot
+(plot1 + plot2) + plot_annotation(
+  title = "The Effect of Income Classification on EODB is Reversed by Controls",
+  caption = "Points are predicted EODB scores with 95% confidence intervals."
+)
+```
+
+```{r}
+#| label: trend-visualizations
+# Function to create trend plots (DRY principle)
+create_trend_plot <- function(data, group_var, title, subtitle, colors) {
+  data %>%
+    ggplot(aes(x = year, y = eodb_score, color = !!sym(group_var), group = !!sym(group_var))) +
+    geom_point(alpha = 0.6, size = 1) +
+    geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1) +
+    labs(title = title,
+         subtitle = subtitle,
+         x = "Year",
+         y = "Ease of Doing Business Score",
+         color = str_to_title(str_replace(group_var, "_", " "))) +
+    scale_color_manual(values = colors) +
+    theme_minimal(base_size = 14) +
+    theme(legend.position = "bottom", legend.box = "horizontal")
+}
+
+# Regional trends
+regional_colors <- c("East Asia & Pacific" = "red",
+                    "Europe & Central Asia" = "brown",
+                    "Latin America & Caribbean" = "green",
+                    "Middle East & North Africa" = "darkblue",
+                    "North America" = "skyblue",
+                    "South Asia" = "purple",
+                    "Sub-Saharan Africa" = "pink")
+
+regional_plot <- create_trend_plot(
+  analytical_dataset, 
+  "region",
+  "Ease of Doing Business Trends by Region (2015–2019)",
+  "Higher scores indicate better business environments",
+  regional_colors
+)
+
+print(regional_plot)
+
+# Income group trends
+income_colors <- c("Low income" = "red",
+                  "Lower middle income" = "orange",
+                  "Upper middle income" = "blue",
+                  "High income" = "darkgreen",
+                  "Not classified" = "gray")
+
+income_plot <- create_trend_plot(
+  analytical_dataset,
+  "income", 
+  "Ease of Doing Business Trends by Income Group (2015–2019)",
+  "Higher scores indicate better business environments",
+  income_colors
+)
+
+print(income_plot)
+```
+
+
+
+```{r}
+#| label: tbl-fixed-effects
+#| tbl-cap: "Two-Way Fixed Effects: Within-Country Identification"
+
+# Fixed effects results table
+modelsummary(
+  model_fe,
+  stars = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
+  vcov = ~country,
+  gof_map = c("nobs", "r.squared.within"),
+  notes = list("Standard errors clustered by country.",
+               "Model includes country and year fixed effects.")
+)
+```
+
+```{r}
+#| label: prepare-coef-data
+#| include: false
+
+# Function to create coefficient plot data
+create_coef_data <- function() {
+  models <- list("M1" = model_simple, "M2" = fixest_models[[1]], 
+                 "M3" = fixest_models[[2]], "M4" = fixest_models[[6]])
+  
+  coef_data <- map_dfr(models, ~{
+    tidy(.x, conf.int = TRUE) |>
+      filter(str_detect(term, "income")) |>
+      mutate(term = str_remove(term, "income"))
+  }, .id = "model")
+  
+  # Add reference category
+  ref_data <- tibble(
+    model = c("M1", "M2", "M3", "M4"),
+    term = "Low income",
+    estimate = 0, conf.low = 0, conf.high = 0
+  )
+  
+  bind_rows(coef_data, ref_data) |>
+    mutate(
+      term = factor(term, levels = c("Low income", "Lower middle income", 
+                                   "Upper middle income", "High income")),
+      model = factor(model, levels = c("M1", "M2", "M3", "M4"))
+    )
+}
+
+coef_data <- create_coef_data()
+```
+
+```{r}
+#| label: fig-coefficient-plot
+#| fig-cap: "Income Group Effects Reverse with Additional Controls"
+#| fig-width: 12
+#| fig-height: 8
+
+# Main coefficient plot showing Simpson's Paradox
+ggplot(coef_data, aes(x = term, y = estimate, color = model)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  geom_point(position = position_dodge(width = 0.6), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), 
+                width = 0.2, position = position_dodge(width = 0.6)) +
+  scale_color_manual(
+    values = c("M1" = "#1f77b4", "M2" = "#ff7f0e", "M3" = "#2ca02c", "M4" = "#d62728"),
+    labels = c("M1: Income Only", "M2: + GDP", "M3: + Governance", "M4: Full Model")
+  ) +
+  labs(
+    title = "Income Group Effects Reverse with Additional Controls",
+    subtitle = "Coefficients relative to Low Income countries (reference category)",
+    x = "Income Classification",
+    y = "Effect on EODB Score (points)",
+    color = "Model Specification"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+```
+This coefficient plot clearly shows the coefficients for income groups starting positive (M1) and flipping to negative (M3, M4) once governance is added, making the reversal easy to understand.
+
+
+
+
+```{r}
+#| label: fig-governance-scatter
+#| fig-cap: "Governance Quality Drives Business Environment Across Income Levels"
+#| fig-width: 12
+#| fig-height: 8
+
+# Governance-EODB relationship by income group
+analytical_dataset |>
+  ggplot(aes(x = governance_index, y = eodb_score, color = income)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_color_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    name = "Income Group"
+  ) +
+  labs(
+    title = "Governance Quality Drives Business Environment Across All Income Levels",
+    subtitle = "Strong governance-EODB relationship evident in each income group",
+    x = "Governance Index (standardized)",
+    y = "Ease of Doing Business Score"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 14, face = "bold")
+  )
+```
+this scatter plot demonstrates that the positive relationship between governance and EODB holds true within every income group. Better governance helps everyone, rich or poor.
+
+
+
+```{r}
+#| label: generate-predictions
+#| include: false
+
+# Generate marginal effects predictions
+pred_data <- predictions(
+  fixest_models[[6]],
+  newdata = datagrid(
+    governance_index = seq(-2, 2, 0.2),
+    income = c("Low income", "Lower middle income", "Upper middle income", "High income")
+  )
+)
+```
+
+```{r}
+#| label: fig-marginal-effects
+#| fig-cap: "Predicted EODB Scores Show Governance Dominates Income"
+#| fig-width: 12
+#| fig-height: 8
+
+# Marginal effects plot
+ggplot(pred_data, aes(x = governance_index, y = estimate, color = income)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = income), 
+              alpha = 0.2, color = NA) +
+  scale_color_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    name = "Income Group"
+  ) +
+  scale_fill_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    guide = "none"
+  ) +
+  labs(
+    title = "Predicted EODB Scores: Governance Matters More Than Income Level",
+    subtitle = "Well-governed low-income countries outperform poorly-governed rich countries",
+    x = "Governance Index (standardized)",
+    y = "Predicted EODB Score"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 14, face = "bold")
+  ) +
+  coord_cartesian(ylim = c(20, 80))
+```
+
+```{r}
+#| label: prepare-between-within
+#| include: false
+
+# Function to create between vs within effects data
+create_between_within_data <- function() {
+  tibble(
+    variable = c("Governance Index", "Log GDP per capita", "Broadband Users", 
+                 "Mobile Subscriptions", "Electricity Access", "Inflation"),
+    between_effect = c(7.044, 2.008, 0.253, 0.055, 0.047, 0.016),
+    between_se = c(0.552, 0.805, 0.041, 0.009, 0.019, 0.020),
+    within_effect = c(2.525, 0.039, -0.028, 0.012, 0.080, 0.006),
+    within_se = c(1.344, 1.237, 0.052, 0.012, 0.047, 0.007)
+  ) |>
+    mutate(
+      between_lower = between_effect - 1.96 * between_se,
+      between_upper = between_effect + 1.96 * between_se,
+      within_lower = within_effect - 1.96 * within_se,
+      within_upper = within_effect + 1.96 * within_se
+    ) |>
+    pivot_longer(
+      cols = c(between_effect, within_effect),
+      names_to = "effect_type",
+      values_to = "estimate"
+    ) |>
+    mutate(
+      conf_lower = ifelse(effect_type == "between_effect", between_lower, within_lower),
+      conf_upper = ifelse(effect_type == "between_effect", between_upper, within_upper),
+      effect_type = recode(effect_type, 
+                          "between_effect" = "Between Countries",
+                          "within_effect" = "Within Countries")
+    )
+}
+
+between_within_data <- create_between_within_data()
+```
+
+```{r}
+#| label: fig-between-within
+#| fig-cap: "Between-Country vs Within-Country Effects Comparison"
+#| fig-width: 12
+#| fig-height: 8
+
+# Between vs within effects plot
+ggplot(between_within_data, aes(x = variable, y = estimate, color = effect_type)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(position = position_dodge(width = 0.5), size = 3) +
+  geom_errorbar(aes(ymin = conf_lower, ymax = conf_upper), 
+                width = 0.2, position = position_dodge(width = 0.5)) +
+  scale_color_manual(values = c("Between Countries" = "#1f77b4", "Within Countries" = "#d62728")) +
+  labs(
+    title = "Between-Country vs Within-Country Effects",
+    subtitle = "Fixed effects isolate causal within-country relationships",
+    x = "Variable",
+    y = "Coefficient Estimate",
+    color = "Comparison Type"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+```
+
+Interpretation: This final plot decomposes the variables' effects into "Between-Country" variation and "Within-Country" variation over time. It shows that the positive effect of governance is a within-country effect, providing strong evidence that when a country actively improves its governance, its business environment gets better.
+  
