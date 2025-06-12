@@ -17,4 +17,45 @@ source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
 ```
 
-This document is for supplementary materials
+
+```{r}
+#| label: prepare-all-data-supplement
+#| include: false
+
+# This chunk loads and prepares all data for the supplementary analysis.
+load(here("data", "data_constructed", "analytical_data.RData"))
+
+analytical_dataset <- analytical_dataset %>%
+  mutate(
+    income = factor(income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+  ) %>%
+  drop_na(government_effectiveness, rule_of_law_estimate, control_of_corruption_estimate) %>%
+  mutate(
+    governance_index = (
+      as.vector(scale(government_effectiveness)) + 
+      as.vector(scale(rule_of_law_estimate)) + 
+      as.vector(scale(control_of_corruption_estimate))
+    ) / 3,
+    log_gdp_per_capita = log(gdp_per_capita),
+    eodb_high = ifelse(eodb_score > median(eodb_score, na.rm = TRUE), "High", "Low"),
+    eodb_high = factor(eodb_high, levels = c("Low", "High"))
+  )
+```
+
+
+```{r}
+#| label: tbl-s1-alpha
+#| tbl-cap: "Internal Consistency Analysis of Governance Index Components"
+#| echo: false
+
+governance_components <- analytical_dataset %>%
+  select(government_effectiveness, rule_of_law_estimate, control_of_corruption_estimate)
+alpha_results <- psych::alpha(governance_components, check.keys = TRUE)
+
+knitr::kable(
+  alpha_results$total,
+  digits = 2,
+  col.names = c("Raw Alpha", "Std. Alpha", "G6(smc)", "Average r", "S/N", "ase", "mean", "sd", "median_r")
+)
+```
+

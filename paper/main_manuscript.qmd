@@ -1,9 +1,9 @@
 ---
-title: "Foundations of Business-Friendly Environments: Assessing the Role of Infrastructure and Economic Stability Indicators"
-shorttitle: "Paper"
-abstract: An Abstract
-keywords: [Ease of doing Business, World bank]
-thanks: Thanks to everyone for checking this out.
+title: "The Income Mirage: How Governance Explains Business Environment Quality"
+shorttitle: "Governance and EODB"
+abstract: This study investigates the determinants of a country's business environment, as measured by the World Bank's Ease of Doing Business (EODB) score. While a naive analysis suggests a strong, positive relationship between national income and EODB, this paper demonstrates that this correlation is a statistical artifact—a classic example of Simpson's Paradox. Using panel data from the World Bank (2015-2019) and a series of OLS and two-way fixed-effects models, this paper shows that when a composite measure of governance quality is introduced, the effect of income vanishes and reverses. Governance emerges as the dominant and most robust predictor of EODB scores. The fixed-effects models, which controls for time-invariant country characteristics, confirms that improvements in governance within a country lead to significantly better business environments. These finding show that a well-governed poor country can outperform a poorly-governed rich one, reveal that effective governance—not national wealth—is the true key to unlocking economic opportunity.
+keywords: [Ease of Doing Business, Governance, Economic Development, Simpson's Paradox, Fixed Effects Models, World Bank]
+thanks: The author thanks Professor Aaron Gullickson for valuable feedback throughout the development of this project. All errors are my own.
 reference-section-title: References
 bibliography: ../bibliography/project.bib
 csl: ../bibliography/strategic-management-journal.csl
@@ -32,34 +32,313 @@ source(here("utils","functions.R"))
 
 # Introduction
 
-In today's globalized economy, understanding the factors that create friendly business environments is critical for economic development policy. Countries worldwide invest substantial resources in infrastructure development and economic stabilization measures, operating under the assumption that these investments translate into improved business conditions. Despite this widespread belief, empirical evidence establishing the precise relationships between infrastructure quality, economic stability, and business environment remains fragmented. This study addresses this gap by examining how specific infrastructure and economic stability indicators influence the ease of doing business across countries.
+What makes a country hospitable to business? The conventional wisdom suggests a simple answer: wealth. Richer countries, with their developed infrastructure and stable economies, should naturally provide better environments for business operations. The World Bank's "Ease of Doing Business" (EODB) index has become a globally recognized benchmark for quantifying these environments, providing a standardized metric to compare regulatory landscapes across nations.
 
-The question of what makes a country hospitable to business activity has significant implications for economic development theory and practice. The World Bank's Ease of Doing Business index has become a benchmark for evaluating business environments, yet the underlying determinants of favorable scores remain imperfectly understood. While extensive literature exists on the relationship between economic development and business conditions, research specifically examining the relative importance of infrastructure reliability versus economic stability indicators presents a promising avenue for investigation. This study asks: *How do infrastructure and economic stability influence how easy it is to do business in a country?*
+A superficial glance at the data suggests a straightforward answer: wealth is destiny. Richer countries, classified as "High income" by the World Bank, consistently top the EODB rankings, while "Low income" countries populate the bottom. This strong correlation supports a simple, intuitive narrative: economic development begets a better business environment. As a nation prospers, it can afford to invest in the institutions, infrastructure, and services that make commercial activity seamless.
 
-This study contributes to existing knowledge by analyzing both infrastructure indicators (primarily access to electricity) and economic stability measures (current account balance and interest rate spreads) in relation to ease of doing business scores. Using a comprehensive dataset from the World Bank's World Development Indicators spanning 2003-2021, this research employs multivariate statistical analysis to determine which factors most significantly predict favorable business environments. By examining these relationships across time and among diverse economies, this study provides a more nuanced understanding of what truly matters for creating business-friendly conditions. The findings will help policymakers prioritize investments and regulatory reforms that most effectively improve business operating conditions, potentially accelerating economic development in regions seeking to attract and retain business activity.
+However, this paper argues that this simple story is misleading. The apparent effect of income may be a classic case of Simpson's Paradox, where a trend observed in aggregate data reverses when the data is disaggregated into subgroups. We hypothesize that the strong correlation between income and EODB is confounded by a third, more fundamental variable: the quality of governance. High-income countries tend to have better governance—stronger rule of law, more effective governments, and lower levels of corruption. It may be this institutional quality, not wealth itself, that truly fosters a positive business environment.
 
+This study seeks to disentangle these effects to answer the following research question: *Is the perceived positive effect of national income on the Ease of Doing Business score a genuine relationship, or is it an artifact of the strong correlation between income and governance quality?* To address this, we analyze a panel dataset of countries from 2015 to 2019. We begin by replicating the naive finding, showing that income level is a powerful predictor of EODB scores when considered in isolation. We then introduce a composite governance index into our models, demonstrating a dramatic reversal: the effect of income disappears and even becomes negative, while governance emerges as the dominant, positive predictor. Finally, we employ two-way fixed-effects models, which control for all stable, unobserved differences between countries, to provide a more rigorous roboust test. These models confirm that when a country improves its governance over time, its EODB score improves, regardless of changes in its GDP.
+
+The findings carry an empowering message for policymakers, particularly in the developing world. They suggest that a nation's economic destiny is not predetermined by its current wealth. Rather, targeted investments in strengthening institutions and the rule of law are the most effective levers for creating an environment where business can thrive.
 
 # Data and Methods
 
-### Data Source
+## Data
 
-This study uses the World Development Indicators (WDI) dataset, a comprehensive database compiled and maintained by the World Bank. The WDI data was directly downloaded using the WDI R package, which provides streamlined access to the WDI database.
+Data for this study are drawn from a panel dataset constructed from two publicly available, cross-national sources compiled by the World Bank. The sample comprises 190 countries observed annually from 2015 to 2019, forming a balanced panel. The unit of analysis is the country-year. The first source is the World Development Indicators (WDI), which provides data on the dependent variable, national economic performance, and key infrastructural controls. The second is the Worldwide Governance Indicators (WGI), which provides the measures of institutional quality used to construct the primary independent variable. The 2015–2019 period was selected due to consistent availability of the core variables and to align with a stable period in the World Bank's "Ease of Doing Business" methodology before its discontinuation. Measures The outcome of interest is the Ease of Doing Business (EODB) score. Sourced from the WDI, this variable measures the favorability of a country's regulatory environment for business operations. It is a continuous score calculated on a 0-100 scale, where higher values indicate more efficient regulations and stronger legal protections for property rights.
 
-### Data Collection
+Governance Quality. To capture the multidimensional nature of institutional quality, a composite index of governance was constructed. This approach follows the principle that a country's institutional fabric is a holistic construct rather than a set of independent pillars. The index is derived from three core indicators from the WGI, each capturing a distinct but related facet of governance: (1) Government Effectiveness, which reflects perceptions of public service quality and the independence of the civil service; (2) Rule of Law, which captures confidence in and adherence to societal rules, particularly contract enforcement and property rights; and (3) Control of Corruption, which measures perceptions of the extent to which public power is exercised for private gain.
 
-* Source: World Bank, World Development Indicators (WDI) Database.
-* URL: [World Bank WDI Data Portal](https://databank.worldbank.org/source/world-development-indicators)
-* Method: Retrieved using the WDI R package[CRAN WDI Package](https://cran.r-project.org/package=WDI)
-* Coverage: The dataset spans multiple years and includes data for most countries globally. Here, I used 2003-2021.
-* Indicators: The dataset provides a wide range of indicators, including GDP, and other critical development metrics.
-* Frequency: Annual data, with country-level observations.
+The index construction involved a two-step process. First, each of the three indicators was standardized to a mean of zero and a standard deviation of one across the pooled sample. This procedure ensures each component contributes equally to the aggregate index, precluding any single indicator from dominating due to differences in scale. Second, the three standardized scores were averaged to create a single, continuous governance_index.
 
-### Generalizability
+To validate this measurement strategy, the internal consistency of the three components was assessed using Cronbach's Alpha. The analysis yielded an alpha coefficient of 0.98, indicating exceptionally high reliability (for detailed results, see Appendix Table 1). This result provides strong statistical justification for treating the three indicators as components of a single latent construct of "governance quality," thus supporting their aggregation into a composite index.
+
+National Income. The analysis operationalizes national income in two ways to test the central hypothesis. First, a categorical measure, Income Group, is used, which follows the World Bank's classification of countries into "Low income," "Lower middle income," "Upper middle income," and "High income" strata. This variable captures broad, structural differences in economic development. Second, a continuous measure, the natural log of GDP per capita (constant 2015 US\$), is included to control for finer gradations in economic output. The logarithmic transformation is standard practice to normalize the variable's distribution and model a relationship of diminishing returns.
+
+To isolate the net effects of governance and income, the models include a set of time-varying country-level controls sourced from the WDI. These include: annual inflation (%) to account for macroeconomic stability; broadband internet users (%) and mobile subscriptions (per 100 people) to control for technological infrastructure and diffusion; and access to electricity (%) as a measure of basic infrastructure development.
+
+```{r}
+#| label: construct-and-validate-governance-index
+#| tbl-cap: "Internal Consistency of the Governance Index Components"
+#| echo: false
+
+# Code from previous step to construct index and run alpha test
+load(here("data", "data_constructed", "analytical_data.RData"))
+
+analytical_dataset <- analytical_dataset |>
+  drop_na(government_effectiveness, rule_of_law_estimate, control_of_corruption_estimate) |>
+  mutate(
+    governance_index = (as.vector(scale(government_effectiveness)) + as.vector(scale(rule_of_law_estimate)) + as.vector(scale(control_of_corruption_estimate))) / 3,
+    income = factor(income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income")),
+    log_gdp_per_capita = log(gdp_per_capita)
+  )
+
+# the variables for the full model
+model_vars <- c("eodb_score", "governance_index", "log_gdp_per_capita", 
+                "inflation_annual_pct", "broadband_internet_users_pct", 
+                "mobile_subscriptions", "access_electricity")
+
+
+analytical_dataset <- analytical_dataset |> drop_na(all_of(model_vars))
+```
+
+Descriptive statistics for all variables used in the analysis are presented in @tbl-descriptive-stats
+
+```{r}
+#| label: tbl-descriptive-stats
+#| tbl-cap: "Descriptive Statistics for the Analytic Sample"
+#| echo: false
+
+
+# Use the formula to select, rename, and summarize variables in one step
+datasummary(
+  (`EODB Score` = eodb_score) +
+  (`Governance Index` = governance_index) +
+  (`Log GDP per Capita` = log_gdp_per_capita) +
+  (`Inflation (Annual %)` = inflation_annual_pct) +
+  (`Broadband Users (%)` = broadband_internet_users_pct) +
+  (`Mobile Subscriptions` = mobile_subscriptions) +
+  (`Access to Electricity (%)` = access_electricity) ~ 
+  
+  N + Mean + SD + Min + Max,
+  
+  # Data 
+  data = analytical_dataset,
+  
+  title = "Descriptive Statistics",
+  notes = "Table 1 presents the descriptive statistics for all variables included in the multivariate regression models. The final analytic sample, after listwise deletion of cases with missing data on any of the control variables, consists of 842 country-year observations. The dependent variable, EODB Score, ranges from 32.0 to 87.2, with a mean of 62.8 and a standard deviation of 12.9, indicating substantial cross-national and temporal variation to be explained. By construction, the composite Governance Index has a mean near zero and a standard deviation of one. The control variables also exhibit considerable variance. Notably, the annual inflation rate is highly skewed, with a mean of 4.0 percent but a maximum of 255.3, reflecting the inclusion of countries experiencing periods of extreme inflation. Mobile subscriptions per 100 people average 109.0, indicating that multiple subscriptions per person are common across the sample.",
+  fmt = 1,  
+  output = "gt"
+)
+```
+
+
+
+
+
+```{r}
+#| label: fig-governance-scatter
+#| fig-cap: "This plot visualizes the relationship between governance quality and the EODB score, disaggregated by the four income groups. The plot reveals a strong, positive, and linear relationship between the governance index and EODB scores across all four income strata."
+#| fig-width: 12
+#| fig-height: 8
+
+# Governance-EODB relationship by income group
+analytical_dataset |>
+  ggplot(aes(x = governance_index, y = eodb_score, color = income)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_color_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    name = "Income Group"
+  ) +
+  labs(
+    title = "Governance Quality Drives Business Environment Across All Income Levels",
+    x = "Governance Index (standardized)",
+    y = "Ease of Doing Business Score"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 14, face = "bold")
+  )
+```
+
+## Analytical Strategy
+
+The analytical strategy proceeds in two stages to rigorously test the hypothesis that governance, rather than income, is the primary driver of the business environment.
+
+First, a series of pooled Ordinary Least Squares (OLS) regression models are estimated. This stage begins with a bivariate model of EODB score on income group to establish the baseline, unadjusted relationship. Subsequent models progressively introduce the continuous measure of GDP, the composite governance index, and other control variables. This sequential approach is designed to explicitly demonstrate the statistical suppression effect, whereby the coefficient for income reverses upon the inclusion of the governance index, thus revealing the Simpson's Paradox at the core of the study.
+
+Second, to adjudicate between the competing hypotheses and move toward a more robust inference, a two-way fixed-effects (TWFE) model is employed. This approach is superior for panel data as it controls for all stable country-specific factors (e.g., geography, culture, legal origins) through country-fixed effects, and for common shocks affecting all countries in a given year (e.g., global economic trends) through year-fixed effects. By purging the estimates of all time-invariant country-specific heterogeneity, the TWFE model isolates the effect of within-country changes over time. The resulting coefficients can be interpreted as the effect of a one-unit change in a given predictor on the EODB score within a particular country over the observation period. Standard errors are clustered at the country level to account for the non-independence of errors within countries over time. All models are estimated using the *feols* function from the *fixest* package in R for computational efficiency.
+
+## Generalizability
 
 The WDI data is widely used in academic and policy research due to its comprehensive coverage and standardized indicators. However, the accuracy of the data depends on the data collection and reporting methods of individual countries. Researchers should be aware of potential missing values and variations in data quality across countries and years.
 
-test citation [@zuzulStartupInertiaFlexibility2020]
-
 # Results
 
+The analysis unfolds in stages, first establishing a simple correlation and then deconstructing it to reveal the more complex underlying reality.
+
+### The Initial (Misleading) Relationship
+
+We begin by examining the relationship between a country's income classification and its EODB score using a series of OLS regression models ([@tbl-fixest-models]). Model 1 confirms the conventional wisdom in stark terms. Compared to the "Low income" reference group, "Lower middle income" countries score an average of 6.8 points higher, "Upper middle income" countries score 16.2 points higher, and "High income" countries score a massive 25.4 points higher on the EODB scale. All coefficients are highly statistically significant (p < 0.001), and this simple model alone explains nearly half the variation in EODB scores (R² = 0.49). This is the baseline "wealth is destiny" finding.
+
+```{r}
+#| label: tbl-fixest-models
+#| tbl-cap: "OLS Models Revealing the Governance Effect"
+
+
+# Stepwise model building using feols
+
+model_simple <- feols(eodb_score ~ income, data = analytical_dataset)
+model_gdp <- feols(eodb_score ~ income + log_gdp_per_capita, data = analytical_dataset)
+model_gov <- feols(eodb_score ~ income + log_gdp_per_capita + governance_index, data = analytical_dataset)
+model_full <- feols(eodb_score ~ income + log_gdp_per_capita + governance_index +
+                       broadband_internet_users_pct + mobile_subscriptions + 
+                       access_electricity + inflation_annual_pct, data = analytical_dataset)
+
+# Display models with robust standard errors
+modelsummary(
+  list("(1)" = model_simple,
+       "(2)" = model_gdp,
+       "(3)" = model_gov, 
+       "(4)" = model_full),
+   coef_rename = c("incomeLower middle income" = "Income: Lower Middle",
+    "incomeUpper middle income" = "Income: Upper Middle",
+    "incomeHigh income" = "Income: High",
+                  "log_gdp_per_capita" = "Log GDP per Capita",
+        "governance_index" = "Governance Index",
+
+                  "broadband_internet_users_pct" = "Broadband Users (%)",
+                  "mobile_subscriptions" = "Mobile Subscriptions",
+                  "access_electricity" = "Access to Electricity (%)",
+                  "inflation_annual_pct" = "Inflation (Annual %)"),
+  stars = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
+  vcov = "stata",
+  gof_map = c("nobs", "r.squared"),
+  notes = "OLS regression models demonstrating Simpson's Paradox in the income-business environment relationship (n = 842 country-years, 2015-2019). Model 1 confirms conventional wisdom with large positive income effects. Model 3 reveals complete reversal: after controlling for governance quality, high-income countries score 6.8 points lower than low-income countries, while governance emerges as the dominant predictor (8.02). Robust standard errors in parentheses. Reference category: Low income countries.",
+  fmt = 2, 
+  output = "gt"
+)
+```
+
+### Unmasking the Paradox
+
+The picture changes dramatically once we introduce the governance index. In Model 3, the inclusion of our governance measure has a strong effect. First, the coefficient for the Governance Index itself is large, positive, and highly significant ($\beta$ = 8.02, p < 0.001), indicating that a one-unit improvement in governance is associated with an 8-point increase in the EODB score.
+
+Simultaneously, the coefficients for the income groups are turned on their head. The large positive effects from Model 1 vanish completely. Now, relative to low-income countries, "Lower middle income" countries are predicted to score 2.4 points lower (p < 0.05), and "High income" countries are predicted to have EODB scores that are 6.8 points lower (p < 0.001), holding governance and GDP constant. This complete reversal is a clear demonstration of Simpson's Paradox. The positive effect of income seen in the initial model was entirely masking the underlying effect of good governance, with which it is strongly correlated. This core finding holds even in the full specification (Model 4), where governance remains the strongest single predictor ($\beta$ = 7.04, p < 0.001).
+
+```{r}
+#| label: prepare-coef-data
+#| include: false
+coef_data <- map_dfr(
+  list("M1" = model_simple, "M2" = model_gdp, "M3" = model_gov, "M4" = model_full),
+  ~tidy(.x, conf.int = TRUE) %>% filter(str_detect(term, "income")),
+  .id = "model"
+) %>%
+  mutate(term = str_remove(term, "income")) %>%
+  bind_rows(tibble(model = c("M1", "M2", "M3", "M4"), term = "Low income", estimate = 0, conf.low = 0, conf.high = 0)) %>%
+  mutate(
+    term = factor(term, levels = c("Low income", "Lower middle income", "Upper middle income", "High income")),
+    model = factor(model, levels = c("M1", "M2", "M3", "M4"))
+  )
+
+
+
+```
+
+```{r}
+#| label: fig-coefficient-plot
+#| fig-cap: "Reversal of Income Group Effects After Controlling for Governance. Estimated coefficients for income groups relative to low-income countries across four model specifications (n = 842 country-years). Model 1 shows the standard positive income-business environment relationship. Models 3-4 reveal Simpson's Paradox: after controlling for governance quality, higher-income countries exhibit significantly worse business environments than low-income countries. Error bars, 95% confidence intervals."
+#| fig-width: 10
+#| fig-height: 6
+#| results: 'asis'
+ggplot(coef_data, aes(x = term, y = estimate, color = model)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(position = position_dodge(width = 0.6), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, position = position_dodge(width = 0.6)) +
+  scale_color_manual(
+    values = c("M1" = "#1f77b4", "M2" = "#ff7f0e", "M3" = "#2ca02c", "M4" = "#d62728"),
+    labels = c("M1: Income Only", "M2: + GDP", "M3: + Governance", "M4: Full Model")
+  ) +
+  labs(
+    x = "Income Classification", y = "Effect on EODB Score", color = "Model Specification"
+  ) +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+### The Primacy of Governance: Fixed-Effects Evidence
+
+The coefficient for the Governance Index remains positive and statistically significant ($\beta$= 2.53, p < 0.1). This indicates that a one-unit improvement in a country's governance score is associated with a 2.53-point increase in its EODB score, after netting out all stable country-specific characteristics and common year shocks. In stark contrast, the coefficient for Log GDP per Capita (0.039) is small and statistically indistinguishable from zero. This is a crucial finding: once we control for all time-invariant heterogeneity, we find that rising national income on its own has no discernible impact on the business environment. It is the tangible, within-country improvement in governance that matters.
+
+
+```{r}
+#| label: tbl-fixed-effects
+#| tbl-cap: 'Within-country analysis controlling for country and year fixed effects (n = 842 country-years). Governance improvements significantly enhance business environments (b = 2.53, p < 0.1), while GDP growth has no discernible effect (b = 0.04, n.s.). Standard errors clustered by country in parentheses.'
+
+model_fe <- feols(
+  eodb_score ~ governance_index + log_gdp_per_capita + 
+               broadband_internet_users_pct + mobile_subscriptions + 
+               access_electricity + inflation_annual_pct | country + year,
+  data = analytical_dataset
+)
+
+modelsummary(
+  model_fe,
+  stars = c("*" = 0.1, "**" = 0.05, "***" = 0.01),
+  vcov = ~country,
+  gof_map = c("nobs", "r.squared.within"),
+  coef_rename = c("governance_index" = "Governance Index", 
+                  "log_gdp_per_capita" = "Log GDP per Capita",
+                  "broadband_internet_users_pct" = "Broadband Users (%)",
+                  "mobile_subscriptions" = "Mobile Subscriptions",
+                  "access_electricity" = "Access to Electricity (%)",
+                  "inflation_annual_pct" = "Inflation (Annual %)"),
+  fmt=2
+)
+```
+
+
+### Visualizing the Conclusion: Governance Dominates Income
+
+The final and most interesting illustration of our conclusion comes from visualizing the predicted EODB scores from our full OLS model (@fig-marginal-effects). The plot shows the predicted EODB score across the range of the governance index, separately for each of the four income groups.
+
+The lines are steeply sloped and tightly packed, showing that governance has a massive effect on predicted scores regardless of income group. Most importantly, the plot demonstrates that a low-income country with excellent governance (e.g., a governance index of 1.5) is predicted to have a far better EODB score (around 75) than a high-income country with poor governance (e.g., a governance index of -1.5, predicted score around 45). This directly contradicts the "wealth is destiny" narrative and provides a clear, intuitive summary of our central finding: when it comes to fostering a business-friendly environment, the quality of governance trumps the level of national income.
+
+
+```{r}
+#| label: generate-predictions
+#| include: false
+pred_data <- predictions(
+  model_full,
+  newdata = datagrid(
+    governance_index = seq(-2, 2, 0.1),
+    income = c("Low income", "Lower middle income", "Upper middle income", "High income")
+  )
+)
+```
+
+
+```{r}
+#| label: fig-marginal-effects
+#| fig-cap: "Governance Quality Dominates Income Level in Predicting Business Environment: A well-governed low-income country is predicted to outperform a poorly-governed high-income country."
+#| fig-width: 10
+#| fig-height: 7
+
+ggplot(pred_data, aes(x = governance_index, y = estimate, color = income)) +
+  geom_line(linewidth = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = income), 
+              alpha = 0.2, color = NA) +
+  scale_color_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    name = "Income Group"
+  ) +
+  scale_fill_manual(
+    values = c("Low income" = "#d62728", "Lower middle income" = "#ff7f0e",
+               "Upper middle income" = "#2ca02c", "High income" = "#1f77b4"),
+    guide = "none"
+  ) +
+  labs(
+    x = "Governance Index (Higher is Better)",
+    y = "Predicted Ease of Doing Business Score"
+  ) +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(30, 90))
+```
+
 # Conclusions
+
+This research set out to test the conventional wisdom that national wealth is the primary driver of a business-friendly environment. Our analysis began by confirming this simple narrative: in a model without other controls, higher-income countries are associated with dramatically higher Ease of Doing Business scores. However, this story proved to be a statistical illusion.
+
+The central finding of this paper is that the relationship between income and the business environment is confounded by governance. When a composite measure of governance quality is introduced, the strong, positive effect of income vanishes and even reverses. Instead, governance emerges as the single most powerful and robust predictor of EODB scores. This finding holds even after controlling for a host of other economic and infrastructural factors.
+
+Furthermore, our most rigorous analysis using two-way fixed-effects models provides evidence consistent with a strong interpretation. By examining changes within countries over time, we found that improvements in governance lead to statistically significant improvements in the business environment, while growth in GDP per capita does not. This suggests that it is the active process of institutional reform—strengthening the rule of law, improving government effectiveness, and curbing corruption—that creates the conditions for businesses to flourish.
+
+The policy implications of these findings are both clear and empowering. For developing nations seeking to attract investment and foster economic growth, the message is not to simply wait for prosperity to trickle down into institutional quality. Instead, a proactive focus on governance reform represents the most direct and effective path toward creating a superior business environment. As our final visualization shows, a well-governed, low-income nation can offer a more attractive commercial landscape than a wealthy but poorly-governed one.
+
+A limitation of this study is the relatively short time-period of the panel (2015-2019). Future research could extend this analysis over a longer time horizon to better capture the long-run dynamics of institutional change. Additionally, future work could disaggregate the governance index to explore which specific components—rule of law, corruption control, or government effectiveness—have the most significant impact, providing even more targeted policy guidance.

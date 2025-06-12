@@ -69,6 +69,37 @@ analytical_dataset <- analytical_dataset %>%
 median_eodb <- median(analytical_dataset$eodb_score, na.rm = TRUE)
 print(paste("Median EODB Score:", round(median_eodb, 2)))
 prop.table(table(analytical_dataset$eodb_high))
+
+# First, define the variables for the full model to ensure correct listwise deletion
+model_vars <- c("eodb_score", "governance_index", "log_gdp_per_capita", 
+                "inflation_annual_pct", "broadband_internet_users_pct", 
+                "mobile_subscriptions", "access_electricity")
+
+
+analytical_dataset <- analytical_dataset |> drop_na(all_of(model_vars))
+```
+```{r}
+#| label: construct-and-validate-governance-index
+#| tbl-cap: "Internal Consistency of the Governance Index Components"
+
+
+# --- Step 3: Validate with Cronbach's Alpha ---
+# Select only the raw governance component variables
+governance_components <- analytical_dataset %>%
+  select(government_effectiveness, rule_of_law_estimate, control_of_corruption_estimate)
+
+# Calculate Cronbach's Alpha using the psych package
+alpha_results <- psych::alpha(governance_components, check.keys = TRUE)
+
+# Print the main results in a clean format
+# The `alpha_results$total` contains the summary statistics.
+# We are interested in `raw_alpha`.
+knitr::kable(
+  alpha_results$total,
+  caption = "Cronbach's Alpha for Governance Components",
+  digits = 2,
+  col.names = c("Raw Alpha", "Std. Alpha", "G6(smc)", "Average r", "S/N", "ase", "mean", "sd", "median_r")
+)
 ```
 
 The median EODB score is calculated (61.28) and used to create a binary "High/Low" EODB variable for later models.
